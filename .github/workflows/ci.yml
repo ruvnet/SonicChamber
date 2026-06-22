@@ -7,13 +7,15 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_INCREMENTAL: 0
 
 jobs:
   rust-engine:
     name: Rust physics engine
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: crates/sonic-ct
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -23,20 +25,25 @@ jobs:
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/sonic-ct
 
       - name: Rustfmt
-        run: cargo fmt --check -p sonic-ct
+        run: cargo fmt --check
 
       - name: Clippy (deny warnings)
-        run: cargo clippy --release -p sonic-ct --lib -- -D warnings
+        run: cargo clippy --release --lib -- -D warnings
 
       - name: Tests (physics gates)
-        run: cargo test --release -p sonic-ct
+        run: cargo test --release
 
   governance-gates:
     name: MetaBioHacker governance gates
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: packages/metabiohacker
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,7 +51,7 @@ jobs:
           node-version: "22"
 
       - name: Install
-        run: cd packages/metabiohacker && npm ci || npm install
+        run: npm ci
 
       - name: Governance tests
-        run: cd packages/metabiohacker && npm test
+        run: npm test
