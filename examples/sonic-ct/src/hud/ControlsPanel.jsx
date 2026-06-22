@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useStore } from "../store.js";
 
-// ── Phantom presets ────────────────────────────────────────────────────────
 const PRESETS = [
   { label: "Standard",  seed: 1,  n: 56,  elements: 140, fan: 72, iters: 5,  nz: 28 },
   { label: "Athletic",  seed: 7,  n: 64,  elements: 180, fan: 80, iters: 8,  nz: 32 },
@@ -10,9 +9,6 @@ const PRESETS = [
   { label: "Fast",      seed: 3,  n: 32,  elements: 64,  fan: 48, iters: 2,  nz: 12 },
 ];
 
-// ── Reconstruction methods ─────────────────────────────────────────────────
-// Backprojection = 1 SART iteration. Landweber exposed as labels only;
-// the WASM method picker maps labels → iters.
 const METHODS = [
   { label: "Backprojection", iters: 1,  desc: "Delay-and-sum (1 SART pass). Fast baseline." },
   { label: "SART ×5",        iters: 5,  desc: "5 algebraic iterations. Default balance." },
@@ -20,64 +16,68 @@ const METHODS = [
   { label: "SART ×12",       iters: 12, desc: "12 iterations. Highest fidelity, slowest." },
 ];
 
-// ── Parameter slider spec ──────────────────────────────────────────────────
 const PARAMS = [
-  { key: "n",        label: "Grid resolution", min: 24, max: 128, step: 8,  unit: "px",      desc: "Side length of the 2-D reconstruction grid" },
-  { key: "nz",       label: "Axial slices",    min: 8,  max: 64,  step: 4,  unit: "slices",  desc: "Number of cranio-caudal slices in the volume" },
-  { key: "elements", label: "Ring elements",   min: 32, max: 256, step: 8,  unit: "tx",      desc: "Transducer count in the ring" },
-  { key: "fan",      label: "Fan angle",       min: 32, max: 120, step: 4,  unit: "°",       desc: "Active receive aperture per transmit event" },
-  { key: "iters",    label: "SART iterations", min: 1,  max: 20,  step: 1,  unit: "×",       desc: "More iterations → lower MAE, slower scan" },
-  { key: "seed",     label: "Phantom seed",    min: 1,  max: 999, step: 1,  unit: "",        desc: "Deterministic random phantom identity" },
+  { key: "n",        label: "Grid resolution", min: 24, max: 128, step: 8, unit: "px",     desc: "Side length of the reconstruction grid" },
+  { key: "nz",       label: "Axial slices",    min: 8,  max: 64,  step: 4, unit: "slices", desc: "Number of cranio-caudal slices" },
+  { key: "elements", label: "Ring elements",   min: 32, max: 256, step: 8, unit: "tx",     desc: "Transducer count in the ring" },
+  { key: "fan",      label: "Fan angle",       min: 32, max: 120, step: 4, unit: "°",      desc: "Active receive aperture" },
+  { key: "iters",    label: "SART iterations", min: 1,  max: 20,  step: 1, unit: "×",      desc: "More → lower MAE, slower" },
+  { key: "seed",     label: "Phantom seed",    min: 1,  max: 999, step: 1, unit: "",       desc: "Deterministic phantom identity" },
 ];
 
-// ── DSP options ────────────────────────────────────────────────────────────
 const DSP_OPTIONS = [
-  { key: "bandpass", label: "Bandpass filter",   desc: "2nd-order Butterworth (2–5 MHz)" },
-  { key: "tgc",      label: "Time-gain comp.",   desc: "Compensate depth attenuation (0.5 dB/MHz/cm)" },
-  { key: "matched",  label: "Matched filter",    desc: "Ricker wavelet pulse compression" },
-  { key: "envelope", label: "Hilbert envelope",  desc: "Amplitude envelope for display" },
+  { key: "bandpass", label: "Bandpass filter",  desc: "2nd-order Butterworth 2–5 MHz" },
+  { key: "tgc",      label: "Time-gain comp.",  desc: "Compensate depth attenuation" },
+  { key: "matched",  label: "Matched filter",   desc: "Ricker wavelet pulse compression" },
+  { key: "envelope", label: "Hilbert envelope", desc: "Amplitude envelope for display" },
 ];
+
+function closestMethodIdx(iters) {
+  return METHODS.reduce((best, m, i) =>
+    Math.abs(m.iters - iters) < Math.abs(METHODS[best].iters - iters) ? i : best, 0);
+}
 
 export default function ControlsPanel() {
-  const params = useStore((s) => s.params);
-  const setParam = useStore((s) => s.setParam);
-  const rescan = useStore((s) => s.rescan);
-  const building = useStore((s) => s.building);
+  const params    = useStore((s) => s.params);
+  const setParam  = useStore((s) => s.setParam);
+  const applyParams = useStore((s) => s.applyParams);
+  const rescan    = useStore((s) => s.rescan);
+  const building  = useStore((s) => s.building);
 
-  const [open, setOpen] = useState(true);
-  const [dsp, setDsp] = useState({ bandpass: true, tgc: true, matched: false, envelope: true });
-  const [method, setMethod] = useState(1); // index into METHODS
+  const [open, setOpen] = useState(false); // collapsed by default on small screens
+  const [dsp,  setDsp]  = useState({ bandpass: true, tgc: true, matched: false, envelope: true });
+  const [method, setMethod] = useState(closestMethodIdx(params.iters));
 
-  const applyPreset = (p) => {
-    Object.entries(p).forEach(([k, v]) => {
-      if (k !== "label") setParam(k, v);
-    });
-    // find closest method
-    const mi = METHODS.reduce((best, m, i) =>
-      Math.abs(m.iters - p.iters) < Math.abs(METHODS[best].iters - p.iters) ? i : best, 0);
-    setMethod(mi);
+  // Apply a preset: bulk-set all params + auto-rescan
+  const handlePreset = (p) => {
+    const { label: _label, ...updates } = p;
+    setMethod(closestMethodIdx(p.iters));
+    applyParams(updates);
   };
 
-  const applyMethod = (i) => {
+  // Select a reconstruction method: set iters + auto-rescan
+  const handleMethod = (i) => {
     setMethod(i);
-    setParam("iters", METHODS[i].iters);
+    applyParams({ iters: METHODS[i].iters });
   };
 
   const toggleDsp = (k) => setDsp((d) => ({ ...d, [k]: !d[k] }));
 
   return (
     <div className={`controls-panel ${open ? "open" : "collapsed"}`}>
-      {/* ── Header ── */}
-      <button className="controls-toggle" onClick={() => setOpen(!open)} title={open ? "Collapse" : "Expand controls"}>
+      <button
+        className="controls-toggle"
+        onClick={() => setOpen((o) => !o)}
+        title={open ? "Collapse controls" : "Expand controls"}
+        aria-label="Toggle controls"
+      >
         <span className="controls-icon">⚙</span>
-        <span className="controls-label">{open ? "Controls" : ""}</span>
-        <span className="controls-chevron">{open ? "‹" : "›"}</span>
+        <span className="controls-chevron">{open ? "›" : "‹"}</span>
       </button>
 
       {open && (
         <div className="controls-body">
 
-          {/* ── Phantom presets ── */}
           <section className="ctrl-section">
             <div className="ctrl-heading">Phantom preset</div>
             <div className="preset-grid">
@@ -85,9 +85,9 @@ export default function ControlsPanel() {
                 <button
                   key={p.label}
                   className={`preset-btn ${params.seed === p.seed && params.n === p.n ? "active" : ""}`}
-                  onClick={() => applyPreset(p)}
+                  onClick={() => handlePreset(p)}
                   disabled={building}
-                  title={`n=${p.n} elements=${p.elements} nz=${p.nz} iters=${p.iters} seed=${p.seed}`}
+                  title={`n=${p.n} el=${p.elements} nz=${p.nz} iters=${p.iters} seed=${p.seed}`}
                 >
                   {p.label}
                 </button>
@@ -95,7 +95,6 @@ export default function ControlsPanel() {
             </div>
           </section>
 
-          {/* ── Reconstruction method ── */}
           <section className="ctrl-section">
             <div className="ctrl-heading">Reconstruction method</div>
             <div className="method-list">
@@ -103,7 +102,7 @@ export default function ControlsPanel() {
                 <button
                   key={m.label}
                   className={`method-btn ${method === i ? "active" : ""}`}
-                  onClick={() => applyMethod(i)}
+                  onClick={() => handleMethod(i)}
                   disabled={building}
                   title={m.desc}
                 >
@@ -114,7 +113,6 @@ export default function ControlsPanel() {
             </div>
           </section>
 
-          {/* ── Parameter sliders ── */}
           <section className="ctrl-section">
             <div className="ctrl-heading">Parameters</div>
             {PARAMS.map(({ key, label, min, max, step, unit, desc }) => (
@@ -124,58 +122,36 @@ export default function ControlsPanel() {
                   <span className="param-val">{params[key]}{unit}</span>
                 </div>
                 <input
-                  type="range"
-                  min={min}
-                  max={max}
-                  step={step}
-                  value={params[key]}
+                  type="range" min={min} max={max} step={step} value={params[key]}
                   disabled={building}
                   onChange={(e) => {
                     setParam(key, e.target.value);
-                    // keep method in sync if iters changed
-                    if (key === "iters") {
-                      const mi = METHODS.reduce((best, m, i) =>
-                        Math.abs(m.iters - Number(e.target.value)) < Math.abs(METHODS[best].iters - Number(e.target.value)) ? i : best, 0);
-                      setMethod(mi);
-                    }
+                    if (key === "iters") setMethod(closestMethodIdx(Number(e.target.value)));
                   }}
                 />
               </div>
             ))}
           </section>
 
-          {/* ── DSP pipeline ── */}
           <section className="ctrl-section">
             <div className="ctrl-heading">DSP pipeline</div>
-            <div className="dsp-note">Signal conditioning applied to raw USCT RF traces</div>
+            <div className="dsp-note">Signal conditioning on raw RF traces</div>
             {DSP_OPTIONS.map(({ key, label, desc }) => (
               <label key={key} className="dsp-row" title={desc}>
-                <input
-                  type="checkbox"
-                  checked={dsp[key]}
-                  onChange={() => toggleDsp(key)}
-                />
+                <input type="checkbox" checked={dsp[key]} onChange={() => toggleDsp(key)} />
                 <span className="dsp-label">{label}</span>
                 <span className="dsp-desc">{desc}</span>
               </label>
             ))}
           </section>
 
-          {/* ── Run button ── */}
-          <button
-            className="ctrl-run"
-            onClick={rescan}
-            disabled={building}
-          >
+          <button className="ctrl-run" onClick={rescan} disabled={building}>
             {building ? "Scanning…" : "▶ Run Simulation"}
           </button>
 
           <div className="ctrl-footer">
-            <a href="https://github.com/ruvnet/SonicChamber" target="_blank" rel="noopener noreferrer">
-              ruvnet/SonicChamber
-            </a>
-            {" · "}
-            <span>Research use only</span>
+            <a href="https://github.com/ruvnet/SonicChamber" target="_blank" rel="noopener noreferrer">ruvnet/SonicChamber</a>
+            {" · "}Research only
           </div>
         </div>
       )}

@@ -42,6 +42,13 @@ export const useStore = create((set, get) => ({
   setParam: (k, v) =>
     set((s) => ({ params: { ...s.params, [k]: Number(v) } })),
 
+  // Bulk set multiple params at once, then immediately rescan.
+  applyParams: (updates) => {
+    set((s) => ({ params: { ...s.params, ...Object.fromEntries(Object.entries(updates).map(([k, v]) => [k, Number(v)])) } }));
+    // Use setTimeout(0) to let Zustand flush before rescan reads params
+    setTimeout(() => get().rescan(), 0);
+  },
+
   init: async () => {
     try {
       const engine = await SonicCT.load("sonic_ct.wasm");

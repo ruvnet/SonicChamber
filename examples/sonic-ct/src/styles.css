@@ -359,3 +359,126 @@ html, body, #root {
 }
 .ctrl-footer a { color: var(--muted); text-decoration: none; }
 .ctrl-footer a:hover { color: var(--cyan); }
+
+/* ── Responsive: Tablet (≤ 900px) ───────────────────────────────────────── */
+@media (max-width: 900px) {
+  /* Narrower panels */
+  .panel.top-left   { max-width: 160px; }
+  .panel.top-right  { max-width: 160px; font-size: 11px; }
+  .panel.legend,
+  .panel.organ-panel { max-width: 150px; font-size: 11px; }
+
+  /* Controls panel: narrower on tablet */
+  .controls-panel.open { width: auto; min-width: 0; }
+  .controls-body { width: 200px; }
+}
+
+/* ── Responsive: Mobile (≤ 640px) ───────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Top bar: compress to fit */
+  .panel.top-left {
+    max-width: 130px;
+    left: 4px !important;
+    top: 4px !important;
+    padding: 8px;
+    font-size: 10px;
+  }
+  .panel.top-right {
+    max-width: 130px;
+    right: 48px !important;
+    top: 4px !important;
+    padding: 8px;
+    font-size: 10px;
+  }
+  .metric-value { font-size: 14px !important; }
+  .metric-label { font-size: 9px !important; }
+
+  /* Hide organ panel and legend on mobile — too much real estate */
+  .panel.organ-panel,
+  .panel.legend { display: none; }
+
+  /* Bottom bar: full width, smaller */
+  .panel.bottom {
+    left: 4px !important;
+    right: 4px !important;
+    bottom: 32px !important;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .scrubber-label { font-size: 9px; }
+  .action { font-size: 10px; padding: 4px 8px; }
+
+  /* Badge: smaller */
+  .badge { font-size: 9px; padding: 4px 8px; }
+
+  /* Brand text */
+  .brand { font-size: 12px; }
+  .brand-sub { display: none; }
+  .modes { gap: 3px; }
+  .mode { font-size: 9px; padding: 2px 6px; }
+
+  /* Controls panel: slide up from bottom on mobile */
+  .controls-panel {
+    position: fixed;
+    right: 0;
+    left: 0;
+    top: auto;
+    bottom: 0;
+    transform: none;
+    border-radius: 16px 16px 0 0;
+    border: 1px solid var(--glass-border);
+    border-bottom: none;
+    max-height: 75vh;
+    flex-direction: column;
+  }
+  .controls-panel.collapsed {
+    border-radius: 16px 16px 0 0;
+    bottom: 24px; /* sit above badge */
+  }
+  .controls-toggle {
+    flex-direction: row;
+    width: 100%;
+    min-height: 40px;
+    padding: 0 16px;
+    justify-content: space-between;
+    border-bottom: 1px solid #16223c;
+  }
+  .controls-toggle .controls-icon { font-size: 14px; }
+  .controls-toggle .controls-chevron { font-size: 18px; transform: rotate(90deg); }
+  .controls-panel.open .controls-toggle .controls-chevron { transform: rotate(-90deg); }
+  .controls-label { display: none; }
+
+  /* After toggle, show a label */
+  .controls-toggle::after {
+    content: "Controls";
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cyan);
+    letter-spacing: 0.5px;
+    flex: 1;
+    text-align: left;
+    margin-left: 8px;
+  }
+
+  .controls-body {
+    width: 100%;
+    max-height: calc(75vh - 40px);
+    padding: 12px 16px 16px;
+    overflow-y: auto;
+  }
+
+  /* Preset grid: 3 columns on mobile */
+  .preset-grid { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* Method list: 2 columns on mobile */
+  .method-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .method-desc { display: none; }
+}
+
+/* ── Mobile landscape: compact everything ───────────────────────────────── */
+@media (max-width: 640px) and (orientation: landscape) {
+  .panel.top-left { top: 2px !important; }
+  .panel.top-right { top: 2px !important; }
+  .panel.bottom { bottom: 24px !important; }
+  .controls-panel { max-height: 60vh; }
+}
