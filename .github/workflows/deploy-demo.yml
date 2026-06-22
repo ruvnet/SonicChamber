@@ -1,12 +1,11 @@
-name: Deploy Demo to GitHub Pages
+name: Build & Deploy to GitHub Pages
+
+# Single workflow owns all Pages deployments.
+# Builds: /demo/ (Vite WASM demo) + / (markdown docs)
 
 on:
   push:
     branches: [main]
-    paths:
-      - "examples/sonic-ct/**"
-      - "crates/sonic-ct-wasm/**"
-      - "scripts/build-sonic-ct-wasm.sh"
   workflow_dispatch:
 
 permissions:
@@ -15,23 +14,25 @@ permissions:
   id-token: write
 
 concurrency:
-  group: demo-pages
+  group: pages
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
+      # ── Rust + WASM ──────────────────────────────────────────────────
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/sonic-ct
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
@@ -39,33 +40,50 @@ jobs:
       - name: Build WASM
         run: bash scripts/build-sonic-ct-wasm.sh
 
+      # ── Node / Vite ──────────────────────────────────────────────────
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: examples/sonic-ct/package-lock.json
 
       - name: Install demo dependencies
-        run: cd examples/sonic-ct && npm ci || npm install
+        run: cd examples/sonic-ct && npm ci
 
-      - name: Build demo
+      - name: Build demo (base=/MetaBioHacker/demo/)
         run: cd examples/sonic-ct && npm run build
         env:
           GITHUB_PAGES: "true"
 
-      - name: Stage demo under /demo/
+      # ── Assemble _site/ ──────────────────────────────────────────────
+      - name: Assemble site
         run: |
-          mkdir -p _site/demo
+          mkdir -p _site/demo _site/docs/adr _site/docs/api _site/docs/assets
+
+          # Demo at /demo/
           cp -r examples/sonic-ct/dist/. _site/demo/
-          # Root redirect to /demo/
+
+          # Docs at /docs/
+          cp -r docs/. _site/docs/
+
+          # Root: redirect index + README
           cat > _site/index.html << 'HTML'
           <!DOCTYPE html>
-          <html>
-            <head>
-              <meta http-equiv="refresh" content="0; url=demo/" />
-              <title>MetaBioHacker Demo</title>
-            </head>
-            <body><a href="demo/">Open demo</a></body>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8"/>
+            <meta http-equiv="refresh" content="0; url=demo/"/>
+            <title>MetaBioHacker — USCT Simulator</title>
+            <style>
+              body { font-family: system-ui, sans-serif; background:#0d1117; color:#c9d1d9;
+                     display:flex; flex-direction:column; align-items:center;
+                     justify-content:center; min-height:100vh; margin:0; }
+              a { color:#58a6ff; font-size:1.2rem; }
+            </style>
+          </head>
+          <body>
+            <h2>MetaBioHacker</h2>
+            <p>Redirecting to the live USCT demo…</p>
+            <a href="demo/">Open demo →</a>
+          </body>
           </html>
           HTML
 
@@ -74,5 +92,12 @@ jobs:
         with:
           path: _site
 
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
