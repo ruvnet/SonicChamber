@@ -3,11 +3,66 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="MetaBioHacker — browser-based acoustic digital human workbench. Ultrasound computed tomography (USCT) simulated in Rust/WebAssembly, visualised with React Three Fiber."
-    />
-    <title>MetaBioHacker · Acoustic Digital Human Workbench</title>
+
+    <!-- Primary SEO -->
+    <title>Sonic Chamber · Acoustic Digital Human Workbench</title>
+    <meta name="description" content="Sonic Chamber — open-source Ultrasound Computed Tomography (USCT) simulator. Full-body acoustic reconstruction, 3D tissue segmentation, and multimodal fusion running in your browser via WebAssembly. The open alternative to Midjourney Medical." />
+    <meta name="keywords" content="sonic chamber, USCT, ultrasound computed tomography, acoustic tomography, digital human, medical imaging, SART reconstruction, full-waveform inversion, WebAssembly, Rust, open source, Midjourney Medical, tissue segmentation, speed of sound imaging" />
+    <meta name="author" content="ruvnet" />
+    <link rel="canonical" href="https://ruvnet.github.io/SonicChamber/demo/" />
+
+    <!-- Open Graph (LinkedIn, Facebook, Slack unfurl) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ruvnet.github.io/SonicChamber/demo/" />
+    <meta property="og:title" content="Sonic Chamber · Acoustic Digital Human Workbench" />
+    <meta property="og:description" content="Open-source USCT simulator running in your browser. Full-body acoustic reconstruction, 3D tissue segmentation, multimodal medical fusion. The open alternative to Midjourney Medical." />
+    <meta property="og:image" content="https://raw.githubusercontent.com/ruvnet/SonicChamber/main/docs/assets/screenshot.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Sonic Chamber" />
+
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@ruvnet" />
+    <meta name="twitter:title" content="Sonic Chamber · Acoustic Digital Human Workbench" />
+    <meta name="twitter:description" content="Open-source USCT simulator in your browser. Acoustic reconstruction + 3D tissue segmentation via WebAssembly." />
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/ruvnet/SonicChamber/main/docs/assets/screenshot.png" />
+
+    <!-- Theme & app identity -->
+    <meta name="theme-color" content="#0d1117" />
+    <meta name="application-name" content="Sonic Chamber" />
+    <meta name="apple-mobile-web-app-title" content="Sonic Chamber" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Favicon (inline SVG data URI — no external files needed) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%230d1117' stroke='%231f6feb' stroke-width='2'/><circle cx='16' cy='16' r='8' fill='none' stroke='%2358a6ff' stroke-width='1.5'/><circle cx='16' cy='16' r='3' fill='%2358a6ff'/><circle cx='28' cy='16' r='2' fill='%23f8c325'/><circle cx='4' cy='16' r='2' fill='%23f8c325'/><circle cx='16' cy='4' r='2' fill='%23f8c325'/><circle cx='16' cy='28' r='2' fill='%23f8c325'/></svg>" />
+
+    <!-- Structured data (Google rich results) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Sonic Chamber",
+      "description": "Open-source Ultrasound Computed Tomography (USCT) simulator. Full-body acoustic reconstruction and 3D tissue segmentation running in the browser via WebAssembly.",
+      "url": "https://ruvnet.github.io/SonicChamber/demo/",
+      "applicationCategory": "MedicalApplication",
+      "operatingSystem": "Any (browser-based)",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "ruvnet",
+        "url": "https://github.com/ruvnet"
+      },
+      "codeRepository": "https://github.com/ruvnet/SonicChamber",
+      "license": "https://opensource.org/licenses/MIT",
+      "keywords": ["USCT", "ultrasound", "medical imaging", "SART", "WebAssembly", "Rust", "digital human"]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

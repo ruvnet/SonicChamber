@@ -71,18 +71,26 @@ jobs:
           <head>
             <meta charset="UTF-8"/>
             <meta http-equiv="refresh" content="0; url=demo/"/>
-            <title>MetaBioHacker — USCT Simulator</title>
+            <title>Sonic Chamber — Acoustic Digital Human Workbench</title>
+            <meta name="description" content="Sonic Chamber — open-source USCT simulator. Full-body acoustic reconstruction and tissue segmentation in your browser."/>
+            <meta property="og:title" content="Sonic Chamber — Acoustic Digital Human Workbench"/>
+            <meta property="og:image" content="https://raw.githubusercontent.com/ruvnet/SonicChamber/main/docs/assets/screenshot.png"/>
             <style>
               body { font-family: system-ui, sans-serif; background:#0d1117; color:#c9d1d9;
                      display:flex; flex-direction:column; align-items:center;
-                     justify-content:center; min-height:100vh; margin:0; }
-              a { color:#58a6ff; font-size:1.2rem; }
+                     justify-content:center; min-height:100vh; margin:0; gap:1rem; }
+              h2 { color:#58a6ff; font-size:1.6rem; margin:0; }
+              p  { color:#8b949e; margin:0; }
+              a  { color:#58a6ff; font-size:1.1rem; text-decoration:none;
+                   border:1px solid #1f6feb; padding:.5rem 1.2rem; border-radius:6px; }
+              a:hover { background:#1f6feb22; }
             </style>
           </head>
           <body>
-            <h2>MetaBioHacker</h2>
-            <p>Redirecting to the live USCT demo…</p>
-            <a href="demo/">Open demo →</a>
+            <h2>Sonic Chamber</h2>
+            <p>Acoustic Digital Human Workbench</p>
+            <p>Redirecting to the live demo…</p>
+            <a href="demo/">Open Sonic Chamber →</a>
           </body>
           </html>
           HTML
