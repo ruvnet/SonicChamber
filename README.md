@@ -15,7 +15,7 @@
 **[→ Open interactive USCT demo](https://ruvnet.github.io/MetaBioHacker/demo/)**  
 Run USCT reconstruction in-browser (WebAssembly, ~130 ms). Adjust grid resolution, ring elements, SART iterations, and phantom seed. Visualises ground truth, reconstruction, and tissue segmentation with per-cell uncertainty.
 
-[![MetaBioHacker USCT Demo](docs/assets/demo-preview.svg)](https://ruvnet.github.io/MetaBioHacker/demo/)
+[![MetaBioHacker — Sonic Chamber USCT Demo](docs/assets/screenshot.png)](https://ruvnet.github.io/MetaBioHacker/demo/)
 
 ---
 
