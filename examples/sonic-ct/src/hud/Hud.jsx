@@ -1,5 +1,6 @@
 import React from "react";
 import { useStore, CHANNELS } from "../store.js";
+import ControlsPanel from "./ControlsPanel.jsx";
 import { TISSUE_NAMES, EVIDENCE } from "../engine.js";
 import { TISSUE_COLORS } from "../theme.js";
 
@@ -30,6 +31,7 @@ export default function Hud() {
       <Legend />
       <Bottom />
       <Badge />
+      <ControlsPanel />
     </div>
   );
 }
@@ -41,9 +43,9 @@ function TopLeft() {
     <div className="panel top-left">
       <div className="brand">
         <span className="dot" />
-        Meta<b>BioHacker</b>
+        Sonic<b>Chamber</b>
       </div>
-      <div className="brand-sub">Acoustic digital human workbench · Sonic Chamber</div>
+      <div className="brand-sub">Acoustic digital human workbench</div>
       <div className="modes">
         {CHANNELS.map((c) => (
           <button
