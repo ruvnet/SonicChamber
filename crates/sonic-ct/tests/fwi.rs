@@ -4,7 +4,9 @@
 //! (the gold-standard FWI correctness test): they must point the same way.
 //! A short inversion must then reduce both the data misfit and the model error.
 
-use sonic_ct::fwi::{gradient, invert, invert_multiscale, misfit, observe, FwiConfig, Geometry, Stage};
+use sonic_ct::fwi::{
+    gradient, invert, invert_multiscale, misfit, observe, FwiConfig, Geometry, Stage,
+};
 use sonic_ct::grid::Grid;
 use sonic_ct::types::WATER_SPEED;
 
@@ -25,7 +27,13 @@ fn inclusion_error(g: &Grid, truth: &Grid, n: usize, extent: f32) -> f32 {
 
 // Small, fast configuration for the test suite.
 fn cfg() -> FwiConfig {
-    FwiConfig { n: 28, extent: 0.12, nt: 220, freq: 90_000.0, dt: None }
+    FwiConfig {
+        n: 28,
+        extent: 0.12,
+        nt: 220,
+        freq: 90_000.0,
+        dt: None,
+    }
 }
 
 // Water background with a faster circular inclusion (a small, well-posed target).
@@ -59,7 +67,11 @@ fn adjoint_gradient_matches_finite_difference() {
     let (grad, _) = gradient(&kappa, &c, dx, dt, &geom, &observed);
 
     // Probe finite-difference gradient at several interior cells.
-    let probes = [c.n / 2 * c.n + c.n / 2, (c.n / 2 - 2) * c.n + c.n / 2, c.n / 2 * c.n + (c.n / 2 + 3)];
+    let probes = [
+        c.n / 2 * c.n + c.n / 2,
+        (c.n / 2 - 2) * c.n + c.n / 2,
+        c.n / 2 * c.n + (c.n / 2 + 3),
+    ];
     let mut dot = 0.0f64;
     let mut na = 0.0f64;
     let mut nf = 0.0f64;
@@ -69,13 +81,18 @@ fn adjoint_gradient_matches_finite_difference() {
         kp[cell] += eps;
         let mut km = kappa.clone();
         km[cell] -= eps;
-        let fd = (misfit(&kp, &c, dx, dt, &geom, &observed) - misfit(&km, &c, dx, dt, &geom, &observed)) / (2.0 * eps);
+        let fd = (misfit(&kp, &c, dx, dt, &geom, &observed)
+            - misfit(&km, &c, dx, dt, &geom, &observed))
+            / (2.0 * eps);
         dot += (grad[cell] as f64) * (fd as f64);
         na += (grad[cell] as f64).powi(2);
         nf += (fd as f64).powi(2);
     }
     let cosine = dot / (na.sqrt() * nf.sqrt() + 1e-30);
-    assert!(cosine > 0.85, "adjoint vs FD gradient cosine = {cosine:.3} (must be > 0.85)");
+    assert!(
+        cosine > 0.85,
+        "adjoint vs FD gradient cosine = {cosine:.3} (must be > 0.85)"
+    );
 }
 
 #[test]
@@ -99,7 +116,10 @@ fn inversion_reduces_misfit_and_model_error() {
     // inclusion. (Full quantitative amplitude recovery needs frequency
     // continuation + regularisation — the documented next step.)
     let cmax = res.speed.data.iter().cloned().fold(0.0f32, f32::max);
-    assert!(cmax > WATER_SPEED + 20.0, "FWI should recover a faster inclusion: cmax={cmax}");
+    assert!(
+        cmax > WATER_SPEED + 20.0,
+        "FWI should recover a faster inclusion: cmax={cmax}"
+    );
     // The recovered velocity perturbation must be concentrated centrally (where
     // the true inclusion is), not smeared to the boundary. Precise per-pixel
     // amplitude needs frequency continuation + regularisation (documented next
@@ -116,7 +136,10 @@ fn inversion_reduces_misfit_and_model_error() {
     }
     assert!(sw > 0.0, "a velocity perturbation must be recovered");
     let centroid = (sx / sw).hypot(sy / sw);
-    assert!(centroid < c.extent * 0.3, "perturbation must concentrate centrally: centroid={centroid}");
+    assert!(
+        centroid < c.extent * 0.3,
+        "perturbation must concentrate centrally: centroid={centroid}"
+    );
 }
 
 #[test]
@@ -127,14 +150,32 @@ fn frequency_continuation_recovers_the_inclusion() {
     let extent = 0.12;
     let n = 28;
     let truth = true_model(n, extent);
-    let geom = Geometry::ring(&FwiConfig { n, extent, ..Default::default() }, 10, 24);
+    let geom = Geometry::ring(
+        &FwiConfig {
+            n,
+            extent,
+            ..Default::default()
+        },
+        10,
+        24,
+    );
 
     let stages: Vec<Stage> = [40_000.0f32, 60_000.0, 90_000.0]
         .iter()
         .map(|&freq| {
-            let cfg = FwiConfig { n, extent, nt: 320, freq, dt: None };
+            let cfg = FwiConfig {
+                n,
+                extent,
+                nt: 320,
+                freq,
+                dt: None,
+            };
             let observed = observe(&truth, &cfg, &geom);
-            Stage { cfg, observed, iters: 6 }
+            Stage {
+                cfg,
+                observed,
+                iters: 6,
+            }
         })
         .collect();
 
@@ -142,7 +183,13 @@ fn frequency_continuation_recovers_the_inclusion() {
     let multi = invert_multiscale(&start, &geom, &stages);
 
     // Single-scale FWI at the highest frequency, matched on total iterations.
-    let hi = FwiConfig { n, extent, nt: 320, freq: 90_000.0, dt: None };
+    let hi = FwiConfig {
+        n,
+        extent,
+        nt: 320,
+        freq: 90_000.0,
+        dt: None,
+    };
     let single = invert(&start, &hi, &geom, &observe(&truth, &hi, &geom), 18);
 
     let e_multi = inclusion_error(&multi.speed, &truth, n, extent);
@@ -151,7 +198,10 @@ fn frequency_continuation_recovers_the_inclusion() {
     // FWI at matched iterations (deterministic). Absolute amplitude/sign recovery
     // on this small, underdetermined problem still needs stronger regularisation
     // and source coverage — the documented next step (ADR-0026).
-    assert!(e_multi < e_single, "freq-continuation {e_multi} should beat single-scale {e_single}");
+    assert!(
+        e_multi < e_single,
+        "freq-continuation {e_multi} should beat single-scale {e_single}"
+    );
     // Both inversions must at least reduce their data misfit.
     assert!(multi.misfit_history.last().unwrap() < multi.misfit_history.first().unwrap());
 }

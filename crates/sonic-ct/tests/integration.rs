@@ -1,6 +1,8 @@
 //! End-to-end and component integration tests for `sonic_ct`.
 
-use sonic_ct::butterfly::{AcquisitionBackend, ButterflyEmbeddedConfig, MockButterflyEmbeddedBackend};
+use sonic_ct::butterfly::{
+    AcquisitionBackend, ButterflyEmbeddedConfig, MockButterflyEmbeddedBackend,
+};
 use sonic_ct::geometry::Ring;
 use sonic_ct::grid::Grid;
 use sonic_ct::memory::{check_coherence, embed_speed, AcousticMemory, ScanRecord};
@@ -13,7 +15,11 @@ use sonic_ct::types::Tissue;
 
 fn small_cfg(seed: u64) -> PipelineConfig {
     let mut cfg = PipelineConfig::default();
-    cfg.phantom = PhantomConfig { n: 56, extent: 0.24, seed };
+    cfg.phantom = PhantomConfig {
+        n: 56,
+        extent: 0.24,
+        seed,
+    };
     cfg.elements = 120;
     cfg.acquisition.fan = 60;
     cfg.recon.iters = 5;
@@ -49,7 +55,11 @@ fn phantom_contains_all_tissue_classes() {
 fn full_pipeline_metrics_are_sane() {
     let scene = run(small_cfg(1)).unwrap();
     assert!(scene.quality.measurements > 100);
-    assert!(scene.quality.mae_speed < 80.0, "MAE too high: {}", scene.quality.mae_speed);
+    assert!(
+        scene.quality.mae_speed < 80.0,
+        "MAE too high: {}",
+        scene.quality.mae_speed
+    );
     // Water is the easiest class and should reconstruct well.
     assert!(scene.quality.dice[Tissue::Water as usize] > 0.5);
     // Ground-truth anatomy should pass the coherence check.
@@ -144,7 +154,10 @@ fn longitudinal_drift_detects_change() {
         mae: 1.0,
     });
     let drift = mem.longitudinal_drift("p1").unwrap();
-    assert!((drift - 1.0).abs() < 1e-5, "orthogonal scans => drift 1.0, got {drift}");
+    assert!(
+        (drift - 1.0).abs() < 1e-5,
+        "orthogonal scans => drift 1.0, got {drift}"
+    );
 }
 
 #[test]
@@ -172,8 +185,8 @@ fn volume_reconstruction_is_coherent() {
     assert!((sum - 1.0).abs() < 1e-3, "fractions sum {sum}");
     // Different slices have different anatomy => some variance in Dice.
     let d = &vol.slice_dice;
-    let spread = d.iter().cloned().fold(0.0f32, f32::max)
-        - d.iter().cloned().fold(1.0f32, f32::min);
+    let spread =
+        d.iter().cloned().fold(0.0f32, f32::max) - d.iter().cloned().fold(1.0f32, f32::min);
     assert!(spread >= 0.0);
     assert!(vol.worst_slice < vol.nz);
 }
@@ -189,7 +202,11 @@ fn organ_detector_finds_lateralised_organs() {
     assert_eq!(hyps.len(), 8);
     let by = |o: Organ| hyps.iter().find(|h| h.organ == o).unwrap();
     // Liver (right) and spleen (left) should both be detected in the corpus.
-    assert!(by(Organ::Liver).confidence > 0.4, "liver conf {}", by(Organ::Liver).confidence);
+    assert!(
+        by(Organ::Liver).confidence > 0.4,
+        "liver conf {}",
+        by(Organ::Liver).confidence
+    );
     assert!(by(Organ::Liver).evidence & EV_ZONE != 0);
     // Confidences are bounded probabilities.
     for h in &hyps {
@@ -204,7 +221,11 @@ fn pgm_phantom_roundtrip_and_reconstruct() {
     use sonic_ct::pipeline::{run_with_phantom, PipelineConfig};
     // Build a synthetic phantom, render its labels to PGM, reload it as a
     // real-style intensity image, and reconstruct — exercising the real-data path.
-    let truth = Phantom::build(PhantomConfig { n: 48, extent: 0.24, seed: 5 });
+    let truth = Phantom::build(PhantomConfig {
+        n: 48,
+        extent: 0.24,
+        seed: 5,
+    });
     // Use a grayscale gradient image so all five intensity bands appear.
     let mut gray = Grid::square(48, 0.24, 0.0);
     for y in 0..48 {
@@ -221,7 +242,10 @@ fn pgm_phantom_roundtrip_and_reconstruct() {
     for &v in &phantom.labels.data {
         seen[v as usize] = true;
     }
-    assert!(seen.iter().filter(|&&s| s).count() >= 3, "intensity bands should map to several classes");
+    assert!(
+        seen.iter().filter(|&&s| s).count() >= 3,
+        "intensity bands should map to several classes"
+    );
 
     let mut cfg = PipelineConfig::default();
     cfg.phantom.n = 48;
@@ -246,16 +270,54 @@ fn method_comparison_iterative_beats_backprojection() {
     // Shepp-Logan must contain a fast high-contrast skull ring.
     let (lo, hi) = phantom.speed.min_max();
     assert!(hi > 2000.0, "skull should be fast: hi={hi}");
-    assert!(lo <= sonic_ct::types::WATER_SPEED + 1.0, "background water present");
+    assert!(
+        lo <= sonic_ct::types::WATER_SPEED + 1.0,
+        "background water present"
+    );
 
     let ring = Ring::new(140, extent / 2.0 * 0.92);
-    let acq = simulate(&phantom, &ring, AcquisitionConfig { fan: 70, ..Default::default() });
+    let acq = simulate(
+        &phantom,
+        &ring,
+        AcquisitionConfig {
+            fan: 70,
+            ..Default::default()
+        },
+    );
 
-    let bp = reconstruct_speed_with(&acq, &phantom.speed, ReconConfig { iters: 1, relaxation: 0.9 }, Method::Backprojection);
-    let sart = reconstruct_speed_with(&acq, &phantom.speed, ReconConfig { iters: 8, relaxation: 0.9 }, Method::Sart);
-    let land = reconstruct_speed_with(&acq, &phantom.speed, ReconConfig { iters: 40, relaxation: 1.0 }, Method::Landweber);
+    let bp = reconstruct_speed_with(
+        &acq,
+        &phantom.speed,
+        ReconConfig {
+            iters: 1,
+            relaxation: 0.9,
+        },
+        Method::Backprojection,
+    );
+    let sart = reconstruct_speed_with(
+        &acq,
+        &phantom.speed,
+        ReconConfig {
+            iters: 8,
+            relaxation: 0.9,
+        },
+        Method::Sart,
+    );
+    let land = reconstruct_speed_with(
+        &acq,
+        &phantom.speed,
+        ReconConfig {
+            iters: 40,
+            relaxation: 1.0,
+        },
+        Method::Landweber,
+    );
 
-    let (e_bp, e_sart, e_land) = (rmse(&bp, &phantom.speed), rmse(&sart, &phantom.speed), rmse(&land, &phantom.speed));
+    let (e_bp, e_sart, e_land) = (
+        rmse(&bp, &phantom.speed),
+        rmse(&sart, &phantom.speed),
+        rmse(&land, &phantom.speed),
+    );
     // Iterative methods must beat the single backprojection sweep.
     assert!(e_sart < e_bp, "SART {e_sart} should beat BP {e_bp}");
     assert!(e_land < e_bp, "Landweber {e_land} should beat BP {e_bp}");
@@ -268,7 +330,12 @@ fn method_comparison_iterative_beats_backprojection() {
 #[test]
 fn image_metrics_identity() {
     use sonic_ct::metrics::{psnr, rmse, ssim};
-    let g = Phantom::build(PhantomConfig { n: 32, extent: 0.24, seed: 1 }).speed;
+    let g = Phantom::build(PhantomConfig {
+        n: 32,
+        extent: 0.24,
+        seed: 1,
+    })
+    .speed;
     assert_eq!(rmse(&g, &g), 0.0);
     assert!(psnr(&g, &g).is_infinite());
     assert!((ssim(&g, &g) - 1.0).abs() < 1e-4);
@@ -280,7 +347,11 @@ fn butterfly_backend_matches_direct_sim() {
     assert_eq!(cfg.total_elements(), 40 * 64);
     let backend = MockButterflyEmbeddedBackend::default();
     assert_eq!(backend.name(), "mock-butterfly-embedded");
-    let ph = Phantom::build(PhantomConfig { n: 40, extent: 0.24, seed: 2 });
+    let ph = Phantom::build(PhantomConfig {
+        n: 40,
+        extent: 0.24,
+        seed: 2,
+    });
     let ring = Ring::new(96, 0.10);
     let acq = backend.acquire(&ph, &ring);
     assert!(acq.valid_count > 0);
