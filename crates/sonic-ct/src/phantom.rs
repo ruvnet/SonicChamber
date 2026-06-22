@@ -139,14 +139,20 @@ impl Phantom {
             // Lungs are modelled as soft-tissue parenchyma here; true air-lung
             // acoustics (near-total shadowing) is future work.
             organs.push(Blob {
-                c: Point::new(body_c.x - rng.uniform(0.004, 0.014), body_c.y + rng.uniform(0.006, 0.018)),
+                c: Point::new(
+                    body_c.x - rng.uniform(0.004, 0.014),
+                    body_c.y + rng.uniform(0.006, 0.018),
+                ),
                 rx: rng.uniform(0.020, 0.028),
                 ry: rng.uniform(0.020, 0.028),
                 tissue: Tissue::Organ,
             }); // heart
             for &s in &[-1.0f32, 1.0] {
                 organs.push(Blob {
-                    c: Point::new(body_c.x + s * rng.uniform(0.030, 0.044), body_c.y + rng.uniform(0.002, 0.014)),
+                    c: Point::new(
+                        body_c.x + s * rng.uniform(0.030, 0.044),
+                        body_c.y + rng.uniform(0.002, 0.014),
+                    ),
                     rx: rng.uniform(0.018, 0.026),
                     ry: rng.uniform(0.022, 0.032),
                     tissue: Tissue::Organ,
@@ -155,13 +161,19 @@ impl Phantom {
         } else if z >= 0.6 {
             // Upper abdomen: large liver (right) + spleen (left).
             organs.push(Blob {
-                c: Point::new(body_c.x + rng.uniform(0.014, 0.030), body_c.y + rng.uniform(0.000, 0.014)),
+                c: Point::new(
+                    body_c.x + rng.uniform(0.014, 0.030),
+                    body_c.y + rng.uniform(0.000, 0.014),
+                ),
                 rx: rng.uniform(0.030, 0.040),
                 ry: rng.uniform(0.024, 0.032),
                 tissue: Tissue::Organ,
             });
             organs.push(Blob {
-                c: Point::new(body_c.x - rng.uniform(0.026, 0.040), body_c.y + rng.uniform(0.004, 0.018)),
+                c: Point::new(
+                    body_c.x - rng.uniform(0.026, 0.040),
+                    body_c.y + rng.uniform(0.004, 0.018),
+                ),
                 rx: rng.uniform(0.013, 0.019),
                 ry: rng.uniform(0.014, 0.020),
                 tissue: Tissue::Organ,
@@ -169,19 +181,28 @@ impl Phantom {
         } else if z >= 0.35 {
             // Mid abdomen: paired kidneys (posterior) + liver tail.
             organs.push(Blob {
-                c: Point::new(body_c.x + rng.uniform(0.018, 0.030), spine_c.y + rng.uniform(0.018, 0.030)),
+                c: Point::new(
+                    body_c.x + rng.uniform(0.018, 0.030),
+                    spine_c.y + rng.uniform(0.018, 0.030),
+                ),
                 rx: rng.uniform(0.010, 0.016),
                 ry: rng.uniform(0.014, 0.020),
                 tissue: Tissue::Organ,
             });
             organs.push(Blob {
-                c: Point::new(body_c.x - rng.uniform(0.018, 0.030), spine_c.y + rng.uniform(0.018, 0.030)),
+                c: Point::new(
+                    body_c.x - rng.uniform(0.018, 0.030),
+                    spine_c.y + rng.uniform(0.018, 0.030),
+                ),
                 rx: rng.uniform(0.010, 0.016),
                 ry: rng.uniform(0.014, 0.020),
                 tissue: Tissue::Organ,
             });
             organs.push(Blob {
-                c: Point::new(body_c.x + rng.uniform(0.010, 0.024), body_c.y + rng.uniform(0.006, 0.018)),
+                c: Point::new(
+                    body_c.x + rng.uniform(0.010, 0.024),
+                    body_c.y + rng.uniform(0.006, 0.018),
+                ),
                 rx: rng.uniform(0.018, 0.026),
                 ry: rng.uniform(0.014, 0.020),
                 tissue: Tissue::Organ,
@@ -190,7 +211,10 @@ impl Phantom {
             // Pelvis: bowel / bladder soft-tissue blobs, central-anterior.
             for _ in 0..2 {
                 organs.push(Blob {
-                    c: Point::new(body_c.x + rng.uniform(-0.018, 0.018), body_c.y + rng.uniform(0.000, 0.022)),
+                    c: Point::new(
+                        body_c.x + rng.uniform(-0.018, 0.018),
+                        body_c.y + rng.uniform(0.000, 0.022),
+                    ),
                     rx: rng.uniform(0.012, 0.020),
                     ry: rng.uniform(0.012, 0.018),
                     tissue: Tissue::Organ,
@@ -201,7 +225,12 @@ impl Phantom {
         // --- Bone: spine (all slices) + ribs (upper) or pelvis (lower). ---
         let mut bones: Vec<Blob> = Vec::new();
         let spine_r = rng.uniform(0.009, 0.013) * (1.0 + 0.4 * (1.0 - z)); // sacrum larger inferiorly
-        bones.push(Blob { c: spine_c, rx: spine_r, ry: spine_r, tissue: Tissue::Bone });
+        bones.push(Blob {
+            c: spine_c,
+            rx: spine_r,
+            ry: spine_r,
+            tissue: Tissue::Bone,
+        });
 
         if z >= 0.6 {
             // Rib arcs: small bone nodes along the posterolateral body wall.
@@ -214,16 +243,29 @@ impl Phantom {
                     body_c.y + (body_ry - fat_t) * r * ang.sin(),
                 );
                 let rr = rng.uniform(0.004, 0.006);
-                bones.push(Blob { c, rx: rr, ry: rr, tissue: Tissue::Bone });
+                bones.push(Blob {
+                    c,
+                    rx: rr,
+                    ry: rr,
+                    tissue: Tissue::Bone,
+                });
                 // Mirror to the other side.
                 let cm = Point::new(2.0 * body_c.x - c.x, c.y);
-                bones.push(Blob { c: cm, rx: rr, ry: rr, tissue: Tissue::Bone });
+                bones.push(Blob {
+                    c: cm,
+                    rx: rr,
+                    ry: rr,
+                    tissue: Tissue::Bone,
+                });
             }
         } else if z < 0.35 {
             // Iliac wings of the pelvis: two lateral bone masses.
             for &s in &[-1.0f32, 1.0] {
                 bones.push(Blob {
-                    c: Point::new(body_c.x + s * rng.uniform(0.030, 0.044), body_c.y - rng.uniform(0.004, 0.014)),
+                    c: Point::new(
+                        body_c.x + s * rng.uniform(0.030, 0.044),
+                        body_c.y - rng.uniform(0.004, 0.014),
+                    ),
                     rx: rng.uniform(0.009, 0.014),
                     ry: rng.uniform(0.016, 0.024),
                     tissue: Tissue::Bone,
@@ -311,6 +353,10 @@ impl Phantom {
             atten.data[i] = t.nominal_attenuation();
             labels.data[i] = t as u8 as f32;
         }
-        Phantom { speed, attenuation: atten, labels }
+        Phantom {
+            speed,
+            attenuation: atten,
+            labels,
+        }
     }
 }

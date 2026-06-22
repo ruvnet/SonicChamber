@@ -90,21 +90,69 @@ pub struct OrganHypothesis {
 /// Spatial prior for one organ.
 struct Spec {
     organ: Organ,
-    z: (f32, f32),       // cranio-caudal range [0,1]
-    side: f32,           // -1 left, +1 right, 0 central
-    posterior: bool,     // expected toward the back (y<0)
-    expected_frac: f32,  // expected fraction of region cells that are organ
+    z: (f32, f32),      // cranio-caudal range [0,1]
+    side: f32,          // -1 left, +1 right, 0 central
+    posterior: bool,    // expected toward the back (y<0)
+    expected_frac: f32, // expected fraction of region cells that are organ
 }
 
 const SPECS: [Spec; 8] = [
-    Spec { organ: Organ::Liver, z: (0.58, 0.86), side: 1.0, posterior: false, expected_frac: 0.18 },
-    Spec { organ: Organ::Spleen, z: (0.58, 0.82), side: -1.0, posterior: false, expected_frac: 0.06 },
-    Spec { organ: Organ::KidneyLeft, z: (0.33, 0.66), side: -1.0, posterior: true, expected_frac: 0.05 },
-    Spec { organ: Organ::KidneyRight, z: (0.33, 0.66), side: 1.0, posterior: true, expected_frac: 0.05 },
-    Spec { organ: Organ::Aorta, z: (0.2, 0.9), side: 0.0, posterior: true, expected_frac: 0.02 },
-    Spec { organ: Organ::Heart, z: (0.8, 1.0), side: -0.3, posterior: false, expected_frac: 0.08 },
-    Spec { organ: Organ::LungLeft, z: (0.78, 1.0), side: -1.0, posterior: false, expected_frac: 0.1 },
-    Spec { organ: Organ::LungRight, z: (0.78, 1.0), side: 1.0, posterior: false, expected_frac: 0.1 },
+    Spec {
+        organ: Organ::Liver,
+        z: (0.58, 0.86),
+        side: 1.0,
+        posterior: false,
+        expected_frac: 0.18,
+    },
+    Spec {
+        organ: Organ::Spleen,
+        z: (0.58, 0.82),
+        side: -1.0,
+        posterior: false,
+        expected_frac: 0.06,
+    },
+    Spec {
+        organ: Organ::KidneyLeft,
+        z: (0.33, 0.66),
+        side: -1.0,
+        posterior: true,
+        expected_frac: 0.05,
+    },
+    Spec {
+        organ: Organ::KidneyRight,
+        z: (0.33, 0.66),
+        side: 1.0,
+        posterior: true,
+        expected_frac: 0.05,
+    },
+    Spec {
+        organ: Organ::Aorta,
+        z: (0.2, 0.9),
+        side: 0.0,
+        posterior: true,
+        expected_frac: 0.02,
+    },
+    Spec {
+        organ: Organ::Heart,
+        z: (0.8, 1.0),
+        side: -0.3,
+        posterior: false,
+        expected_frac: 0.08,
+    },
+    Spec {
+        organ: Organ::LungLeft,
+        z: (0.78, 1.0),
+        side: -1.0,
+        posterior: false,
+        expected_frac: 0.1,
+    },
+    Spec {
+        organ: Organ::LungRight,
+        z: (0.78, 1.0),
+        side: 1.0,
+        posterior: false,
+        expected_frac: 0.1,
+    },
 ];
 
 #[inline]
@@ -168,15 +216,27 @@ pub fn detect_organs(labels: &[u8], n: usize, nz: usize) -> Vec<OrganHypothesis>
             }
         }
 
-        let coverage = if region_cells > 0 { region as f32 / region_cells as f32 } else { 0.0 };
-        let consistency = if slices_total > 0 { slices_present as f32 / slices_total as f32 } else { 0.0 };
+        let coverage = if region_cells > 0 {
+            region as f32 / region_cells as f32
+        } else {
+            0.0
+        };
+        let consistency = if slices_total > 0 {
+            slices_present as f32 / slices_total as f32
+        } else {
+            0.0
+        };
         let volume_frac = region as f32 / total_organ as f32;
 
         // Sub-scores.
         let zone_score = if region > 0 { 1.0 } else { 0.0 };
         let side_score = zone_score; // side already gated; presence implies side
         let size_score = gaussian(coverage, spec.expected_frac, spec.expected_frac.max(0.04));
-        let adj_score = if spec.posterior { (region > 0) as i32 as f32 } else { 1.0 };
+        let adj_score = if spec.posterior {
+            (region > 0) as i32 as f32
+        } else {
+            1.0
+        };
 
         // Evidence flags.
         let mut evidence = 0u32;
@@ -201,9 +261,18 @@ pub fn detect_organs(labels: &[u8], n: usize, nz: usize) -> Vec<OrganHypothesis>
             + 0.2 * size_score
             + 0.12 * adj_score
             + 0.14 * consistency;
-        let confidence = if region == 0 { 0.0 } else { (0.45 + 0.5 * raw).clamp(0.0, 0.97) };
+        let confidence = if region == 0 {
+            0.0
+        } else {
+            (0.45 + 0.5 * raw).clamp(0.0, 0.97)
+        };
 
-        out.push(OrganHypothesis { organ: spec.organ, confidence, evidence, volume_frac });
+        out.push(OrganHypothesis {
+            organ: spec.organ,
+            confidence,
+            evidence,
+            volume_frac,
+        });
     }
     out
 }

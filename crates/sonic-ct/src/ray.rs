@@ -28,7 +28,10 @@ impl Ray {
     pub fn between(grid: &Grid, a: Point, b: Point, samples_per_cell: f32) -> Ray {
         let length = a.dist(b);
         if length <= 0.0 || grid.dx <= 0.0 {
-            return Ray { cells: Vec::new(), length };
+            return Ray {
+                cells: Vec::new(),
+                length,
+            };
         }
         // Number of integration steps along the ray.
         let cells_crossed = length / grid.dx;

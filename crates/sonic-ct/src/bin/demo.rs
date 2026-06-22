@@ -11,7 +11,9 @@ use sonic_ct::pipeline::{run, PipelineConfig};
 use sonic_ct::types::Tissue;
 
 fn main() {
-    let out = std::env::args().nth(1).unwrap_or_else(|| "sonic_ct_out".to_string());
+    let out = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "sonic_ct_out".to_string());
     let out = PathBuf::from(out);
     fs::create_dir_all(&out).expect("create output dir");
 
@@ -20,12 +22,27 @@ fn main() {
 
     // Export inspection images.
     let (s_lo, s_hi) = scene.phantom.speed.min_max();
-    write_pgm(&out.join("truth_speed.pgm"), &scene.phantom.speed.to_pgm(s_lo, s_hi));
-    write_pgm(&out.join("recon_speed.pgm"), &scene.recon_speed.to_pgm(s_lo, s_hi));
+    write_pgm(
+        &out.join("truth_speed.pgm"),
+        &scene.phantom.speed.to_pgm(s_lo, s_hi),
+    );
+    write_pgm(
+        &out.join("recon_speed.pgm"),
+        &scene.recon_speed.to_pgm(s_lo, s_hi),
+    );
     let (a_lo, a_hi) = scene.phantom.attenuation.min_max();
-    write_pgm(&out.join("recon_attenuation.pgm"), &scene.recon_attenuation.to_pgm(a_lo, a_hi));
-    write_pgm(&out.join("truth_labels.pgm"), &scene.phantom.labels.to_pgm(0.0, 4.0));
-    write_pgm(&out.join("recon_labels.pgm"), &scene.segmentation.labels.to_pgm(0.0, 4.0));
+    write_pgm(
+        &out.join("recon_attenuation.pgm"),
+        &scene.recon_attenuation.to_pgm(a_lo, a_hi),
+    );
+    write_pgm(
+        &out.join("truth_labels.pgm"),
+        &scene.phantom.labels.to_pgm(0.0, 4.0),
+    );
+    write_pgm(
+        &out.join("recon_labels.pgm"),
+        &scene.segmentation.labels.to_pgm(0.0, 4.0),
+    );
 
     let coherence = check_coherence(&scene.segmentation.labels);
 
@@ -38,8 +55,10 @@ fn main() {
     for (i, &t) in Tissue::ALL.iter().enumerate() {
         println!("  Dice[{:>6}] = {:.4}", t.name(), scene.quality.dice[i]);
     }
-    println!("coherence:     bone↔water={} organ↔water={} anomaly={}",
-        coherence.bone_touching_water, coherence.organ_touching_water, coherence.anomaly);
+    println!(
+        "coherence:     bone↔water={} organ↔water={} anomaly={}",
+        coherence.bone_touching_water, coherence.organ_touching_water, coherence.anomaly
+    );
     println!("images written to: {}", out.display());
 }
 

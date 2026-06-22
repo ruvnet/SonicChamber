@@ -37,7 +37,13 @@ pub struct FwiConfig {
 
 impl Default for FwiConfig {
     fn default() -> Self {
-        FwiConfig { n: 40, extent: 0.12, nt: 360, freq: 80_000.0, dt: None }
+        FwiConfig {
+            n: 40,
+            extent: 0.12,
+            nt: 360,
+            freq: 80_000.0,
+            dt: None,
+        }
     }
 }
 
@@ -58,7 +64,12 @@ impl Geometry {
         let cell = |ring: &Ring, i: usize| -> usize {
             let p = ring.positions[i];
             // Clamp onto the grid interior.
-            let (x, y) = grid.point_to_cell(Point::new(p.x.clamp(-half * 0.95, half * 0.95), p.y.clamp(-half * 0.95, half * 0.95))).unwrap_or((cfg.n / 2, cfg.n / 2));
+            let (x, y) = grid
+                .point_to_cell(Point::new(
+                    p.x.clamp(-half * 0.95, half * 0.95),
+                    p.y.clamp(-half * 0.95, half * 0.95),
+                ))
+                .unwrap_or((cfg.n / 2, cfg.n / 2));
             grid.idx(x, y)
         };
         let rs = Ring::new(n_src, half * 0.9);
@@ -105,7 +116,11 @@ fn forward(
     let dt2 = dt * dt;
 
     let mut rec = vec![vec![0.0f32; cfg.nt]; geom.receivers.len()];
-    let mut hist: Option<Vec<Vec<f32>>> = if store { Some(Vec::with_capacity(cfg.nt)) } else { None };
+    let mut hist: Option<Vec<Vec<f32>>> = if store {
+        Some(Vec::with_capacity(cfg.nt))
+    } else {
+        None
+    };
 
     for it in 0..cfg.nt {
         // Interior Laplacian + leapfrog update.
@@ -152,7 +167,14 @@ fn sponge(p: &mut [f32], n: usize) {
 }
 
 /// Data misfit `½ Σ ‖p_rec − observed‖²` over all sources.
-pub fn misfit(kappa: &[f32], cfg: &FwiConfig, dx: f32, dt: f32, geom: &Geometry, observed: &[Vec<Vec<f32>>]) -> f32 {
+pub fn misfit(
+    kappa: &[f32],
+    cfg: &FwiConfig,
+    dx: f32,
+    dt: f32,
+    geom: &Geometry,
+    observed: &[Vec<Vec<f32>>],
+) -> f32 {
     let mut chi = 0.0f64;
     for (s, _) in geom.sources.iter().enumerate() {
         let (rec, _) = forward(kappa, cfg, dx, dt, geom, s, false);
@@ -171,7 +193,14 @@ pub fn misfit(kappa: &[f32], cfg: &FwiConfig, dx: f32, dt: f32, geom: &Geometry,
 /// For `∂ₜ²p = κ ∇²p + f`, the operator is self-adjoint; the adjoint field `λ`
 /// solves the same equation backward in time with the receiver residual as its
 /// source, and `∂χ/∂κ(x) = Σ_t λ(x,t) ∇²p(x,t)`.
-pub fn gradient(kappa: &[f32], cfg: &FwiConfig, dx: f32, dt: f32, geom: &Geometry, observed: &[Vec<Vec<f32>>]) -> (Vec<f32>, f32) {
+pub fn gradient(
+    kappa: &[f32],
+    cfg: &FwiConfig,
+    dx: f32,
+    dt: f32,
+    geom: &Geometry,
+    observed: &[Vec<Vec<f32>>],
+) -> (Vec<f32>, f32) {
     let n = cfg.n;
     let nc = n * n;
     let inv_dx2 = 1.0 / (dx * dx);
@@ -239,9 +268,20 @@ pub struct FwiResult {
 
 /// Invert for speed of sound from `observed` traces, starting from `init_speed`,
 /// by gradient descent on `κ = c²` with a normalised, backtracked step.
-pub fn invert(init_speed: &Grid, cfg: &FwiConfig, geom: &Geometry, observed: &[Vec<Vec<f32>>], iters: usize) -> FwiResult {
+pub fn invert(
+    init_speed: &Grid,
+    cfg: &FwiConfig,
+    geom: &Geometry,
+    observed: &[Vec<Vec<f32>>],
+    iters: usize,
+) -> FwiResult {
     let dx = cfg.extent / cfg.n as f32;
-    let c_max = init_speed.data.iter().cloned().fold(0.0f32, f32::max).max(1.0);
+    let c_max = init_speed
+        .data
+        .iter()
+        .cloned()
+        .fold(0.0f32, f32::max)
+        .max(1.0);
     let dt = cfg.dt.unwrap_or_else(|| stable_dt(dx, c_max * 1.3));
 
     let mut kappa: Vec<f32> = init_speed.data.iter().map(|&c| c * c).collect();
@@ -257,12 +297,20 @@ pub fn invert(init_speed: &Grid, cfg: &FwiConfig, geom: &Geometry, observed: &[V
         mute_around(&mut grad, cfg.n, &geom.receivers, 2);
         box_smooth(&mut grad, cfg.n, 2);
         // Normalise the gradient and take a backtracking step.
-        let gmax = grad.iter().cloned().fold(0.0f32, |a, b| a.max(b.abs())).max(1e-20);
+        let gmax = grad
+            .iter()
+            .cloned()
+            .fold(0.0f32, |a, b| a.max(b.abs()))
+            .max(1e-20);
         let kmean = kappa.iter().sum::<f32>() / kappa.len() as f32;
         let mut step = 0.3 * kmean / gmax;
         let mut accepted = false;
         for _ in 0..6 {
-            let trial: Vec<f32> = kappa.iter().zip(&grad).map(|(&k, &g)| (k - step * g).max((1000.0f32).powi(2))).collect();
+            let trial: Vec<f32> = kappa
+                .iter()
+                .zip(&grad)
+                .map(|(&k, &g)| (k - step * g).max((1000.0f32).powi(2)))
+                .collect();
             let m = misfit(&trial, cfg, dx, dt, geom, observed);
             if m < chi {
                 kappa = trial;
@@ -281,7 +329,10 @@ pub fn invert(init_speed: &Grid, cfg: &FwiConfig, geom: &Geometry, observed: &[V
     for (o, &k) in speed.data.iter_mut().zip(&kappa) {
         *o = k.max(0.0).sqrt();
     }
-    FwiResult { speed, misfit_history: history }
+    FwiResult {
+        speed,
+        misfit_history: history,
+    }
 }
 
 /// Zero the gradient within `radius` cells of any of `cells` (mute footprints).
@@ -339,16 +390,26 @@ pub fn invert_multiscale(init_speed: &Grid, geom: &Geometry, stages: &[Stage]) -
         }
         history.extend(r.misfit_history);
     }
-    FwiResult { speed: model, misfit_history: history }
+    FwiResult {
+        speed: model,
+        misfit_history: history,
+    }
 }
 
 /// Generate synthetic "observed" traces for `true_speed` (the forward problem).
 pub fn observe(true_speed: &Grid, cfg: &FwiConfig, geom: &Geometry) -> Vec<Vec<Vec<f32>>> {
     let dx = cfg.extent / cfg.n as f32;
-    let c_max = true_speed.data.iter().cloned().fold(0.0f32, f32::max).max(1.0);
+    let c_max = true_speed
+        .data
+        .iter()
+        .cloned()
+        .fold(0.0f32, f32::max)
+        .max(1.0);
     let dt = cfg.dt.unwrap_or_else(|| stable_dt(dx, c_max * 1.3));
     let kappa: Vec<f32> = true_speed.data.iter().map(|&c| c * c).collect();
-    (0..geom.sources.len()).map(|s| forward(&kappa, cfg, dx, dt, geom, s, false).0).collect()
+    (0..geom.sources.len())
+        .map(|s| forward(&kappa, cfg, dx, dt, geom, s, false).0)
+        .collect()
 }
 
 /// CFL-stable `dt` used by [`observe`]/[`invert`] for a given config + speed.

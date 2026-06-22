@@ -20,8 +20,15 @@ use sonic_ct::segmentation::SegModel;
 const EMBED_K: usize = 16; // 16x16 = 256-d descriptor
 
 fn main() {
-    let n_train: usize = std::env::args().nth(1).and_then(|s| s.parse().ok()).unwrap_or(24);
-    let out = PathBuf::from(std::env::args().nth(2).unwrap_or_else(|| "sonic_ct_out".into()));
+    let n_train: usize = std::env::args()
+        .nth(1)
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(24);
+    let out = PathBuf::from(
+        std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "sonic_ct_out".into()),
+    );
     fs::create_dir_all(&out).expect("create out dir");
 
     println!("== sonic_ct training ==");
@@ -69,7 +76,11 @@ fn main() {
 
     println!("\n-- segmentation model --");
     println!("default mean Dice: {:.4}", base_score);
-    println!("trained mean Dice: {:.4}  (Δ {:+.4})", tuned_score, tuned_score - base_score);
+    println!(
+        "trained mean Dice: {:.4}  (Δ {:+.4})",
+        tuned_score,
+        tuned_score - base_score
+    );
     println!("trained bands:");
     for (u, t) in &tuned.bands {
         if u.is_finite() {
@@ -83,8 +94,15 @@ fn main() {
     if let Some(first) = memory.record(0).cloned() {
         let nn = memory.search(&first.embedding, 3);
         println!("\n-- acoustic memory ({} scans) --", memory.len());
-        println!("warm-start NN for subj-000-t0: {:?}",
-            nn.iter().map(|(i, s)| (memory.record(*i).unwrap().id.clone(), (s * 1000.0).round() / 1000.0)).collect::<Vec<_>>());
+        println!(
+            "warm-start NN for subj-000-t0: {:?}",
+            nn.iter()
+                .map(|(i, s)| (
+                    memory.record(*i).unwrap().id.clone(),
+                    (s * 1000.0).round() / 1000.0
+                ))
+                .collect::<Vec<_>>()
+        );
     }
 
     // Verify the index round-trips through the portable container format.
@@ -92,7 +110,11 @@ fn main() {
     let restored = AcousticMemory::from_bytes(&bytes).expect("roundtrip");
     assert_eq!(restored.len(), memory.len());
     fs::write(out.join("acoustic_memory.rvf"), &bytes).expect("write memory");
-    println!("memory archived: {} bytes -> {}", bytes.len(), out.join("acoustic_memory.rvf").display());
+    println!(
+        "memory archived: {} bytes -> {}",
+        bytes.len(),
+        out.join("acoustic_memory.rvf").display()
+    );
 
     // Coherence summary across the corpus.
     let mut anomalies = 0;
@@ -101,6 +123,10 @@ fn main() {
             anomalies += 1;
         }
     }
-    println!("ground-truth anomalies flagged: {}/{}", anomalies, examples.len());
+    println!(
+        "ground-truth anomalies flagged: {}/{}",
+        anomalies,
+        examples.len()
+    );
     println!("\ntraining complete.");
 }

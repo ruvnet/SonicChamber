@@ -101,5 +101,8 @@ pub fn segment(speed: &Grid, model: &SegModel) -> Segmentation {
         // Closer to a boundary => higher uncertainty.
         uncertainty.data[i] = (-margin / model.margin_scale.max(1e-3)).exp();
     }
-    Segmentation { labels, uncertainty }
+    Segmentation {
+        labels,
+        uncertainty,
+    }
 }

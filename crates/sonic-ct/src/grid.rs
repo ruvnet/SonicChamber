@@ -89,7 +89,8 @@ impl Grid {
     /// Nearest-neighbour sample at a physical point; returns `None` if outside.
     #[inline]
     pub fn sample(&self, p: Point) -> Option<f32> {
-        self.point_to_cell(p).map(|(x, y)| self.data[self.idx(x, y)])
+        self.point_to_cell(p)
+            .map(|(x, y)| self.data[self.idx(x, y)])
     }
 
     /// Minimum and maximum values; `(0,0)` for an empty grid.
@@ -200,7 +201,11 @@ impl Grid {
         let mut out = Vec::with_capacity(64 + self.nx * self.ny);
         let header = format!("P5\n{} {}\n255\n", self.nx, self.ny);
         out.extend_from_slice(header.as_bytes());
-        let span = if (hi - lo).abs() < f32::EPSILON { 1.0 } else { hi - lo };
+        let span = if (hi - lo).abs() < f32::EPSILON {
+            1.0
+        } else {
+            hi - lo
+        };
         // PGM origin is top-left; flip Y so images look upright.
         for y in (0..self.ny).rev() {
             for x in 0..self.nx {

@@ -26,7 +26,11 @@ impl SweepPlan {
         let n = slices.max(1);
         let mut z_levels = Vec::with_capacity(n);
         for i in 0..n {
-            let t = if n == 1 { 0.0 } else { i as f32 / (n - 1) as f32 };
+            let t = if n == 1 {
+                0.0
+            } else {
+                i as f32 / (n - 1) as f32
+            };
             z_levels.push(height * (0.5 - t)); // top (+) to bottom (-)
         }
         SweepPlan {
@@ -112,11 +116,7 @@ impl Volume {
 }
 
 /// Reconstruct a full body volume by sweeping `nz` cranio-caudal slices.
-pub fn reconstruct_volume(
-    cfg: PipelineConfig,
-    model: &SegModel,
-    nz: usize,
-) -> Result<Volume> {
+pub fn reconstruct_volume(cfg: PipelineConfig, model: &SegModel, nz: usize) -> Result<Volume> {
     let nz = nz.max(1);
     let n = cfg.phantom.n;
     let cells = n * n;
@@ -140,7 +140,11 @@ pub fn reconstruct_volume(
     let mut worst = f32::NEG_INFINITY;
 
     for zi in 0..nz {
-        let z = if nz == 1 { 0.5 } else { zi as f32 / (nz - 1) as f32 };
+        let z = if nz == 1 {
+            0.5
+        } else {
+            zi as f32 / (nz - 1) as f32
+        };
         let scene = run_slice(cfg, model, z)?;
         let base = zi * cells;
 

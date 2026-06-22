@@ -21,16 +21,86 @@ struct Ellipse {
 
 /// The canonical Shepp–Logan ellipses (Toft variant intensities).
 const ELLIPSES: [Ellipse; 10] = [
-    Ellipse { x: 0.0, y: 0.0, a: 0.69, b: 0.92, phi: 0.0, gray: 2.0 },
-    Ellipse { x: 0.0, y: -0.0184, a: 0.6624, b: 0.874, phi: 0.0, gray: -0.98 },
-    Ellipse { x: 0.22, y: 0.0, a: 0.11, b: 0.31, phi: -0.31416, gray: -0.02 },
-    Ellipse { x: -0.22, y: 0.0, a: 0.16, b: 0.41, phi: 0.31416, gray: -0.02 },
-    Ellipse { x: 0.0, y: 0.35, a: 0.21, b: 0.25, phi: 0.0, gray: 0.01 },
-    Ellipse { x: 0.0, y: 0.1, a: 0.046, b: 0.046, phi: 0.0, gray: 0.01 },
-    Ellipse { x: 0.0, y: -0.1, a: 0.046, b: 0.046, phi: 0.0, gray: 0.01 },
-    Ellipse { x: -0.08, y: -0.605, a: 0.046, b: 0.023, phi: 0.0, gray: 0.01 },
-    Ellipse { x: 0.0, y: -0.606, a: 0.023, b: 0.023, phi: 0.0, gray: 0.01 },
-    Ellipse { x: 0.06, y: -0.605, a: 0.023, b: 0.046, phi: 0.0, gray: 0.01 },
+    Ellipse {
+        x: 0.0,
+        y: 0.0,
+        a: 0.69,
+        b: 0.92,
+        phi: 0.0,
+        gray: 2.0,
+    },
+    Ellipse {
+        x: 0.0,
+        y: -0.0184,
+        a: 0.6624,
+        b: 0.874,
+        phi: 0.0,
+        gray: -0.98,
+    },
+    Ellipse {
+        x: 0.22,
+        y: 0.0,
+        a: 0.11,
+        b: 0.31,
+        phi: -0.31416,
+        gray: -0.02,
+    },
+    Ellipse {
+        x: -0.22,
+        y: 0.0,
+        a: 0.16,
+        b: 0.41,
+        phi: 0.31416,
+        gray: -0.02,
+    },
+    Ellipse {
+        x: 0.0,
+        y: 0.35,
+        a: 0.21,
+        b: 0.25,
+        phi: 0.0,
+        gray: 0.01,
+    },
+    Ellipse {
+        x: 0.0,
+        y: 0.1,
+        a: 0.046,
+        b: 0.046,
+        phi: 0.0,
+        gray: 0.01,
+    },
+    Ellipse {
+        x: 0.0,
+        y: -0.1,
+        a: 0.046,
+        b: 0.046,
+        phi: 0.0,
+        gray: 0.01,
+    },
+    Ellipse {
+        x: -0.08,
+        y: -0.605,
+        a: 0.046,
+        b: 0.023,
+        phi: 0.0,
+        gray: 0.01,
+    },
+    Ellipse {
+        x: 0.0,
+        y: -0.606,
+        a: 0.023,
+        b: 0.023,
+        phi: 0.0,
+        gray: 0.01,
+    },
+    Ellipse {
+        x: 0.06,
+        y: -0.605,
+        a: 0.023,
+        b: 0.046,
+        phi: 0.0,
+        gray: 0.01,
+    },
 ];
 
 /// Build a Shepp–Logan speed-of-sound phantom on an `n × n` grid spanning
@@ -73,7 +143,11 @@ pub fn shepp_logan(n: usize, extent: f32) -> Phantom {
             labels.data[i] = t as u8 as f32;
         }
     }
-    Phantom { speed, attenuation: atten, labels }
+    Phantom {
+        speed,
+        attenuation: atten,
+        labels,
+    }
 }
 
 fn classify_speed(c: f32) -> Tissue {

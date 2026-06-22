@@ -30,8 +30,13 @@ impl Tissue {
     pub const COUNT: usize = 5;
 
     /// All classes in label order.
-    pub const ALL: [Tissue; Self::COUNT] =
-        [Tissue::Water, Tissue::Fat, Tissue::Muscle, Tissue::Organ, Tissue::Bone];
+    pub const ALL: [Tissue; Self::COUNT] = [
+        Tissue::Water,
+        Tissue::Fat,
+        Tissue::Muscle,
+        Tissue::Organ,
+        Tissue::Bone,
+    ];
 
     /// Human-readable class name.
     pub fn name(self) -> &'static str {

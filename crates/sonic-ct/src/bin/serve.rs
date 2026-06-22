@@ -171,7 +171,9 @@ fn num(s: &str, key: &str) -> Option<f64> {
     let colon = rest.find(':')?;
     let after = rest[colon + 1..].trim_start();
     let end = after
-        .find(|c: char| !(c.is_ascii_digit() || c == '.' || c == '-' || c == '+' || c == 'e' || c == 'E'))
+        .find(|c: char| {
+            !(c.is_ascii_digit() || c == '.' || c == '-' || c == '+' || c == 'e' || c == 'E')
+        })
         .unwrap_or(after.len());
     after[..end].parse().ok()
 }

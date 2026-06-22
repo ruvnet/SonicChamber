@@ -159,7 +159,12 @@ pub fn reconstruct_speed(acq: &Acquisition, like: &Grid, cfg: ReconConfig) -> Gr
 
 /// Reconstruct the speed-of-sound map with an explicit `method` (for the
 /// algorithm comparison benchmark).
-pub fn reconstruct_speed_with(acq: &Acquisition, like: &Grid, cfg: ReconConfig, method: Method) -> Grid {
+pub fn reconstruct_speed_with(
+    acq: &Acquisition,
+    like: &Grid,
+    cfg: ReconConfig,
+    method: Method,
+) -> Grid {
     let n_cells = like.len();
     let init = 1.0 / WATER_SPEED;
     // Interior travel time = measured travel time minus the exterior water leg.

@@ -132,7 +132,8 @@ impl AcousticMemory {
         };
         let mut visited = vec![false; self.records.len()];
         // Candidate frontier and result set, both kept small.
-        let mut frontier: Vec<(usize, f32)> = vec![(entry, cosine(query, &self.records[entry].embedding))];
+        let mut frontier: Vec<(usize, f32)> =
+            vec![(entry, cosine(query, &self.records[entry].embedding))];
         visited[entry] = true;
         let mut best: Vec<(usize, f32)> = frontier.clone();
 
@@ -180,13 +181,18 @@ impl AcousticMemory {
 
     /// Retrieve the best-matching prior embedding for FWI warm-starting.
     pub fn warm_start(&self, query: &[f32]) -> Option<&ScanRecord> {
-        self.search(query, 1).first().and_then(|&(i, _)| self.records.get(i))
+        self.search(query, 1)
+            .first()
+            .and_then(|&(i, _)| self.records.get(i))
     }
 
     /// All records for `patient_id`, ordered by ascending timestamp.
     pub fn patient_timeline(&self, patient_id: &str) -> Vec<&ScanRecord> {
-        let mut v: Vec<&ScanRecord> =
-            self.records.iter().filter(|r| r.patient_id == patient_id).collect();
+        let mut v: Vec<&ScanRecord> = self
+            .records
+            .iter()
+            .filter(|r| r.patient_id == patient_id)
+            .collect();
         v.sort_by_key(|r| r.timestamp);
         v
     }
