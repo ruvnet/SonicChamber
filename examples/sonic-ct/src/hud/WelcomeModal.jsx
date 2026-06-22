@@ -33,12 +33,13 @@ export default function WelcomeModal() {
         <div className="modal-head">
           <div className="modal-kicker">Welcome to</div>
           <h2 className="modal-title">
-            Meta<span className="accent">BioHacker</span>
+            Sonic<span className="accent">Chamber</span>
           </h2>
-          <div className="modal-sub">Acoustic Digital Human Workbench · Sonic Chamber</div>
+          <div className="modal-sub">Acoustic Digital Human Workbench</div>
           <p className="modal-desc">
-            MetaBioHacker is a research platform for simulating full-body underwater acoustic
-            imaging, reconstructing 3D anatomy, and evaluating results against known ground truth.
+            Sonic Chamber is an open-source research platform for simulating full-body ultrasound
+            computed tomography (USCT), reconstructing 3D anatomy slice by slice, and evaluating
+            results against known ground truth — running entirely in your browser via WebAssembly.
           </p>
         </div>
 

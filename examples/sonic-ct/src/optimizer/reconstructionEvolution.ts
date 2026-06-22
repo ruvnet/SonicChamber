@@ -1,4 +1,4 @@
-// MetaBioHacker reconstruction-harness evolution (Darwin Mode).
+// Sonic Chamber reconstruction-harness evolution (Darwin Mode).
 //
 // Invariant: genome -> run frozen Rust acoustic engine -> score candidate ->
 // select Pareto front -> mutate next generation. The Rust engine is the physics
